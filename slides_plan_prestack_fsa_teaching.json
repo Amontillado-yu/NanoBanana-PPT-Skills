@@ -1,0 +1,89 @@
+{
+  "title": "基于快速模拟退火算法的叠前三参数同步反演（教学版）",
+  "subtitle": "方法原理、公式推导与结果解读",
+  "source": "王彦超、沈云发、黄捍东，工程地球物理学报，2012年3月",
+  "audience": "地球物理/地震反演课程教学",
+  "total_slides": 16,
+  "slides": [
+    {
+      "slide_number": 1,
+      "page_type": "cover",
+      "content": "课程主题：基于快速模拟退火算法的叠前三参数同步反演\n英文标题：Pre-stack Simultaneous Three-parameter Inversion Based on Fast Simulated Annealing\n课程定位：地震反演方法专题\n授课建议：90分钟（含讨论）"
+    },
+    {
+      "slide_number": 2,
+      "page_type": "content",
+      "content": "教学目标\n- 理解叠前弹性参数反演的物理意义\n- 掌握 SA 与 FSA 的核心差异\n- 理解 Aki-Richards 近似在反演中的作用\n- 能读懂并复述论文试算结果与结论"
+    },
+    {
+      "slide_number": 3,
+      "page_type": "content",
+      "content": "问题背景：为什么要做叠前三参数反演？\n- 叠前资料包含振幅随角度变化（AVO）信息\n- 可联合估计 Vp、Vs、ρ，支持岩性/流体识别\n- 反演目标函数强非线性、多极值\n- 局部梯度法对初值敏感，易陷入局部最优"
+    },
+    {
+      "slide_number": 4,
+      "page_type": "content",
+      "content": "常规模拟退火（SA）回顾\n- 类比固体退火：高温随机搜索，低温收敛\n- 优点：具备跳出局部极值的概率机制\n- 缺点：降温慢、迭代多、计算耗时较大\n- 课堂问题：如何在不显著损失精度下提速？"
+    },
+    {
+      "slide_number": 5,
+      "page_type": "content",
+      "content": "FSA 的改进思想\n- 扰动分布：由 Gibbs 相关思路改为 Cauchy 重尾扰动\n- 退温策略：采用更快的降温曲线 T(k)=T0/(1+λk)\n- 接受准则：采用广义 Gibbs 形式\n- 直观理解：提高“远跳”概率 + 保持受控收敛"
+    },
+    {
+      "slide_number": 6,
+      "page_type": "content",
+      "content": "反演参数与符号说明\n- 模型参数向量：V = (Vp, Vs, ρ)\n- 正演记录：S = W * R（W 为子波，R 为反射系数）\n- 观测记录：D\n- 目标函数：f(V)=||S-D||=||W*R-D|| -> min"
+    },
+    {
+      "slide_number": 7,
+      "page_type": "content",
+      "content": "Aki-Richards 近似（教学讲解页）\n- 用小参数近似建立反射系数与弹性参数扰动关系\n- 角度项可分解为与 ΔVp/Vp、ΔVs/Vs、Δρ/ρ 相关分量\n- 作用：把地震振幅变化与三参数变化联系起来\n- 课堂提示：适用于中小角度与弱对比假设场景"
+    },
+    {
+      "slide_number": 8,
+      "page_type": "content",
+      "content": "FSA 算法细节（参数初始化）\n- 初始温度 T0：通过接受率试探法选取\n- 每温度迭代次数 N：与问题规模相关（文中给出典型值）\n- 终止条件：达到最大迭代或温度足够低\n- 关键平衡：搜索充分性 vs 计算效率"
+    },
+    {
+      "slide_number": 9,
+      "page_type": "content",
+      "content": "FSA 算法细节（扰动与接受）\n- 扰动模型：V' = V + y*(Vmax - Vmin)\n- y 由 Cauchy 分布生成，增加大步长探索概率\n- 若 Δf<0 则直接接受；否则按概率接受\n- 目标：早期全局探索，后期稳定收敛"
+    },
+    {
+      "slide_number": 10,
+      "page_type": "content",
+      "content": "论文流程图逐步解读\n1) 初始化参数与初始模型\n2) 退温并循环迭代\n3) 生成候选模型并正演\n4) 计算目标函数增量 Δf\n5) 根据准则接受/拒绝\n6) 满足条件后输出最优模型"
+    },
+    {
+      "slide_number": 11,
+      "page_type": "data",
+      "content": "模型试算设置（可作板书）\n- 七层模型，最小层厚10m，最大67m\n- 含气层/水层/油层的速度与密度差异\n- 子波：40Hz Ricker；采样间隔 2ms\n- 迭代参数：N=600，T0=200，λ=0.7，h=0.5"
+    },
+    {
+      "slide_number": 12,
+      "page_type": "data",
+      "content": "结果1：记录拟合度\n- 合成记录与“真实”记录相关系数约 0.974\n- 说明反演模型能较好重建观测特征\n- 课堂讨论：相关系数高是否等于参数唯一正确？\n- 引导：需结合地质先验与不确定性分析"
+    },
+    {
+      "slide_number": 13,
+      "page_type": "data",
+      "content": "结果2：FSA 与 SA 对比\n- 相关系数：0.953（SA） -> 0.974（FSA）\n- 计算时间：632s（SA） -> 314s（FSA）\n- 最大相对误差：2.37% -> 2.05%\n- 结论：FSA 兼顾精度与效率"
+    },
+    {
+      "slide_number": 14,
+      "page_type": "data",
+      "content": "结果3：三参数曲线解释\n- Vp：层界面处变化趋势与理论模型一致\n- Vs：关键层位反演稳定，突变响应合理\n- ρ：整体趋势吻合，局部可能受噪声影响\n- 教学要点：多参数同步可减少单参数解释偏差"
+    },
+    {
+      "slide_number": 15,
+      "page_type": "content",
+      "content": "方法局限与改进方向\n- 对子波估计误差较敏感\n- 噪声与初始约束会影响结果稳定性\n- 可引入先验约束（地质/测井）与正则化\n- 可结合并行计算、混合智能优化进一步提速"
+    },
+    {
+      "slide_number": 16,
+      "page_type": "content",
+      "content": "课堂总结与作业建议\n- 总结：FSA 是 SA 在地震反演中的高效改造\n- 关键：Cauchy 扰动 + 快速退温 + 概率接受\n- 作业1：复现文中参数并比较不同 λ 的收敛曲线\n- 作业2：加入噪声并分析 Vp/Vs/ρ 反演鲁棒性"
+    }
+  ]
+}

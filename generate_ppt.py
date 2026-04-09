@@ -7,14 +7,22 @@ then creates an HTML viewer for playback.
 """
 
 import argparse
+import base64
 import json
 import os
 import sys
 from datetime import datetime
 from pathlib import Path
+from urllib import error as urllib_error
+from urllib import request as urllib_request
 from typing import Any, Dict, List, Optional
 
-from dotenv import load_dotenv
+try:
+    from dotenv import load_dotenv
+except ImportError:
+    def load_dotenv(*args: Any, **kwargs: Any) -> bool:
+        """Fallback when python-dotenv is unavailable."""
+        return False
 
 
 # =============================================================================
@@ -189,6 +197,74 @@ def get_gemini_client():
     return genai.Client(api_key=api_key)
 
 
+def generate_slide_via_rest(
+    prompt: str,
+    slide_number: int,
+    output_dir: str,
+    resolution: str = DEFAULT_RESOLUTION,
+) -> Optional[str]:
+    """
+    Generate a single slide via Gemini REST API (fallback when google-genai
+    SDK is not available in the runtime environment).
+    """
+    print(f"Generating slide {slide_number} (REST fallback)...")
+
+    api_key = os.environ.get("GEMINI_API_KEY")
+    if not api_key:
+        print("  Slide failed: GEMINI_API_KEY environment variable not set")
+        return None
+
+    endpoint = (
+        "https://generativelanguage.googleapis.com/v1beta/models/"
+        "gemini-2.0-flash-preview-image-generation:generateContent"
+        f"?key={api_key}"
+    )
+
+    payload = {
+        "contents": [{"parts": [{"text": prompt}]}],
+        "generationConfig": {
+            "responseModalities": ["TEXT", "IMAGE"],
+        },
+    }
+    data = json.dumps(payload).encode("utf-8")
+    req = urllib_request.Request(
+        endpoint,
+        data=data,
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+
+    try:
+        with urllib_request.urlopen(req, timeout=120) as response:
+            result = json.loads(response.read().decode("utf-8"))
+
+        candidates = result.get("candidates", [])
+        for candidate in candidates:
+            for part in candidate.get("content", {}).get("parts", []):
+                inline_data = part.get("inlineData")
+                if inline_data and inline_data.get("data"):
+                    image_bytes = base64.b64decode(inline_data["data"])
+                    image_path = os.path.join(
+                        output_dir, "images", f"slide-{slide_number:02d}.png"
+                    )
+                    with open(image_path, "wb") as f:
+                        f.write(image_bytes)
+                    print(f"  Slide {slide_number} saved: {image_path}")
+                    return image_path
+
+        print(f"  Slide {slide_number} failed: No image data received")
+        return None
+    except urllib_error.HTTPError as e:
+        error_body = e.read().decode("utf-8", errors="ignore")
+        print(f"  Slide {slide_number} failed: HTTP {e.code} {e.reason}")
+        if error_body:
+            print(f"    API response: {error_body[:400]}")
+        return None
+    except Exception as e:
+        print(f"  Slide {slide_number} failed: {e}")
+        return None
+
+
 def generate_slide(
     prompt: str,
     slide_number: int,
@@ -207,7 +283,10 @@ def generate_slide(
     Returns:
         Path to saved image, or None if generation failed.
     """
-    from google.genai import types
+    try:
+        from google.genai import types
+    except ImportError:
+        return generate_slide_via_rest(prompt, slide_number, output_dir, resolution)
 
     print(f"Generating slide {slide_number}...")
 
